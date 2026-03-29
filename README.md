@@ -288,3 +288,6 @@ visualizer.py       生成图表
 
 本仓库是上游项目的改造 fork，不是从零开始重写的新项目。  
 如果你在公开介绍、二次发布或继续 fork 本仓库，建议保留对上游仓库和原作者的明确引用。
+
+This repository is an adapted fork of the upstream project rather than a from-scratch rewrite.  
+If you publicly describe, redistribute, or continue forking this repository, it is recommended that you keep a clear reference to the upstream repository and original author.
