@@ -1,7 +1,7 @@
-# 微信聊天记录分析工具 · Codex Fork
+# 微信聊天记录分析工具 · Codex Desktop App Fork
 
 > 本仓库基于上游项目 [`Jiang59991/wechat-analyzer`](https://github.com/Jiang59991/wechat-analyzer) 的 fork 进行改造。  
-> 原项目的整体思路、数据处理流程与初始实现归上游作者所有；本 fork 主要将原先依赖 Claude Code 的工作流，调整为可由 Codex 接管的人格分析与报告生成流程。
+> 原项目的整体思路、数据处理流程与初始实现归上游作者所有；本 fork 主要将原先依赖 Claude Code 的工作流，调整为可由 Codex Desktop App 接管的人格分析与报告生成流程。
 
 ---
 
@@ -10,8 +10,8 @@
 - 移除了主流程对 `Anthropic / Claude` 的硬依赖
 - 保留原有本地数据处理、图表生成、HTML 报告能力
 - 新增 `codex_workflow.py`，提供 `prepare / validate / finalize` 三段式工作流
-- 让人格分析步骤变成标准的 JSON 输入 / JSON 输出接口，方便由 Codex 接管
-- 更新 README 与安装说明，改成面向 Codex 的使用方式
+- 让人格分析步骤变成标准的 JSON 输入 / JSON 输出接口，方便由 Codex Desktop App 接管
+- 更新 README 与安装说明，改成面向 Codex Desktop App 的使用方式
 
 ---
 
@@ -39,13 +39,13 @@
 | 操作系统 | macOS 12 及以上 |
 | 微信版本 | Mac 客户端 4.x |
 | Python | 3.10 及以上 |
-| Codex | 能读取工作区文件并写回 JSON 结果 |
+| Codex Desktop App | 能读取工作区文件并写回 JSON 结果 |
 | 机器内存 | 建议最低 16GB，推荐 24GB 及以上 |
 
 
-### Codex 推荐设置
+### Codex Desktop App 推荐设置
 
-为了尽量给人格分析阶段保留完整上下文，建议把 Codex 的上下文相关配置设置为：
+为了尽量给人格分析阶段保留完整上下文，建议把 Codex Desktop App 的上下文相关配置设置为：
 
 ```toml
 model_context_window = 1000000
@@ -62,12 +62,12 @@ model_auto_compact_token_limit = 900000
 
 ## Plugin 入口
 
-这个仓库现在包含一个 repo-local Codex plugin：
+这个仓库现在包含一个 repo-local Codex Desktop App plugin：
 
 - Plugin: `wechat-analyzer-codex`
 - Skill: `analyze-wechat`
 
-打开这个仓库后，你可以直接这样用：
+在 Codex Desktop App 中打开这个仓库后，你可以直接这样用：
 
 ```text
 $analyze-wechat 帮我分析和小明的微信聊天记录
@@ -114,12 +114,12 @@ pip install -r requirements.txt
 1. 关闭 SIP
 2. 在系统 `Terminal.app` 里手动运行内存扫描版密钥提取脚本
 
-这部分限制来自 macOS 调试权限，不是 Claude 或 Codex 特有问题。  
+这部分限制来自 macOS 调试权限，不是 Claude 或 Codex Desktop App 特有问题。  
 详细说明见 [安装指南.md](./安装指南.md)。
 
 ---
 
-## Codex 工作流
+## Codex Desktop App 工作流
 
 推荐优先使用 plugin/skill 入口：
 
@@ -132,15 +132,18 @@ skill 会按当前仓库的流程去做：
 1. 检查环境与本地数据库是否就绪
 2. 导出联系人消息
 3. 生成人格分析输入
-4. 由 Codex 写出结果 JSON
+4. 由 Codex Desktop App 写出结果 JSON
 5. 生成最终 HTML 报告
 
 如果你需要手动调试、分步执行，下面是等价的 CLI 流程。
 
+<details>
+<summary>展开查看 CLI 手动流程</summary>
+
 整个 CLI 流程可以理解成三步：
 
 1. 准备输入：导出聊天记录、生成图表与人格分析输入 JSON
-2. 让 Codex 读取输入 JSON，写出 `personality_result.json`
+2. 让 Codex Desktop App 读取输入 JSON，写出 `personality_result.json`
 3. 读取结果 JSON，生成最终 HTML 报告
 
 ### 第一步：导出联系人消息
@@ -160,7 +163,7 @@ python export_contact.py --contact "联系人备注或昵称"
 
 ---
 
-### 第二步：生成 Codex 输入
+### 第二步：生成 Codex Desktop App 输入
 
 ```bash
 python codex_workflow.py prepare ./export_xxx.csv
@@ -173,7 +176,7 @@ python codex_workflow.py prepare ./export_xxx.csv
 - `wechat_analysis_output/codex_analysis_prompt.md`
 - 所有图表资源
 
-其中 `codex_analysis_prompt.md` 是给 Codex 直接执行的提示文件，里面已经写好了：
+其中 `codex_analysis_prompt.md` 是给 Codex Desktop App 直接执行的提示文件，里面已经写好了：
 
 - 要读取哪些 JSON
 - 结果要写到哪里
@@ -182,15 +185,15 @@ python codex_workflow.py prepare ./export_xxx.csv
 
 ---
 
-### 第三步：让 Codex 生成结果 JSON
+### 第三步：让 Codex Desktop App 生成结果 JSON
 
-在 Codex 中打开这个仓库后，可以直接让它读取 prompt 文件，例如：
+在 Codex Desktop App 中打开这个仓库后，可以直接让它读取 prompt 文件，例如：
 
 ```text
 请读取 wechat_analysis_output/codex_analysis_prompt.md，按照里面的要求生成人格分析结果 JSON，并在写完后继续执行 finalize 命令生成最终报告。
 ```
 
-Codex 需要写出的文件通常是：
+Codex Desktop App 需要写出的文件通常是：
 
 - `wechat_analysis_output/personality_result.json`
 - `wechat_analysis_output/partner_result.json`（若存在对方输入）
@@ -205,7 +208,7 @@ python codex_workflow.py validate ./wechat_analysis_output/personality_result.js
 
 ### 第四步：生成最终报告
 
-如果你没有让 Codex 自动执行最后一步，也可以手动运行：
+如果你没有让 Codex Desktop App 自动执行最后一步，也可以手动运行：
 
 ```bash
 python codex_workflow.py finalize ./export_xxx.csv \
@@ -214,6 +217,8 @@ python codex_workflow.py finalize ./export_xxx.csv \
 ```
 
 若没有对方结果，省略 `--partner-result` 即可。
+
+</details>
 
 ---
 
@@ -243,25 +248,25 @@ wechat_analysis_output/
 
 ---
 
-## 适合 Codex 接管的地方
+## 适合 Codex Desktop App 接管的地方
 
 这个 fork 的核心思路是把人格分析阶段改造成稳定接口：
 
 - 输入：`personality_input.json` / `partner_input.json`
 - 输出：`personality_result.json` / `partner_result.json`
 
-因此 Codex 只需要负责中间这一段“读 JSON -> 写 JSON”，而数据导出、统计分析、图表生成、HTML 报告仍由现有 Python 脚本完成。
+因此 Codex Desktop App 只需要负责中间这一段“读 JSON -> 写 JSON”，而数据导出、统计分析、图表生成、HTML 报告仍由现有 Python 脚本完成。
 
 ---
 
 ## 主要脚本
 
 ```text
-codex_workflow.py   Codex 版 prepare / validate / finalize 入口
+codex_workflow.py   Codex Desktop App 版 prepare / validate / finalize 入口
 main.py             生成分析输入，或读取结果 JSON 生成最终报告
 export_contact.py   从解密后的微信数据库导出联系人消息
 features.py         提取语言特征
-personality.py      生成 Codex 提示词并校验结果 JSON
+personality.py      生成 Codex Desktop App 提示词并校验结果 JSON
 report.py           生成 HTML 报告
 visualizer.py       生成图表
 ```
