@@ -1,5 +1,7 @@
 # 微信聊天记录分析工具 · Codex Desktop App Fork
+> 一个运行在 Codex Desktop App 里的 Skill：输入联系人的名字，自动生成**双人聊天行为可视化 + AI 人格对比分析报告**。无需 API Key，分析由 Codex 本地完成。
 
+---
 > 本仓库基于上游项目 [`Jiang59991/wechat-analyzer`](https://github.com/Jiang59991/wechat-analyzer) 的 fork 进行改造。  
 > 原项目的整体思路、数据处理流程与初始实现归上游作者所有；本 fork 主要将原先依赖 Claude Code 的工作流，调整为可由 Codex Desktop App 接管的人格分析与报告生成流程。
 >
