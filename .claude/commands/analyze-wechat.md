@@ -109,7 +109,7 @@ csrutil status
 
 ```bash
 LLDB_PYTHON="/Library/Developer/CommandLineTools/Library/PrivateFrameworks/LLDB.framework/Versions/A/Resources/Python"
-cd "$DECRYPT_TOOL" && PYTHONPATH="$LLDB_PYTHON" /Library/Developer/CommandLineTools/usr/bin/python3.9 find_key.py 2>&1
+cd "$DECRYPT_TOOL" && PYTHONPATH="$LLDB_PYTHON" /Library/Developer/CommandLineTools/usr/bin/python3.9 find_key_memscan.py 2>&1
 # 成功后生成 wechat_keys.json
 ```
 
@@ -121,13 +121,14 @@ cd "$DECRYPT_TOOL" && PYTHONPATH="$LLDB_PYTHON" /Library/Developer/CommandLineTo
 > 2. 复制粘贴上方命令执行
 > 3. 看到提示后的操作见下方说明
 
-> **注意：此步骤需要用户配合操作**
-> 1. 脚本启动后会附加到微信进程，期间微信界面会短暂卡住（约 2-5 分钟，正在扫描内存）
-> 2. 微信恢复响应后，**切换到微信，依次点开 3-5 个不同的聊天窗口**，每次点开触发一次密钥捕获
-> 3. 终端输出 `[!] Found new key!` 后说明捕获成功
-> 4. 按 Ctrl+C 停止脚本，`wechat_keys.json` 自动保存
+> **注意：此步骤需要用户配合观察终端结果**
+> 1. 脚本会附加到微信进程并扫描内存，期间可能持续几十秒到几分钟
+> 2. 当终端出现 `[*] Detached from WeChat.` 时，表示扫描已结束并正常从微信分离，不是失败
+> 3. 若最后出现 `Results: X/Y keys found` 和 `[*] Keys saved to wechat_keys.json`，说明密钥文件已成功保存
+> 4. 若结果里已经包含 `contact/contact.db`、`message/message_0.db`、`session/session.db` 等关键库，就可以继续解密
+> 5. 个别非关键库未命中密钥通常不影响聊天导出和画像流程
 
-- 若失败报架构错误：改用 `arch -arm64 /Library/Developer/CommandLineTools/usr/bin/python3.9 find_key.py`
+- 若失败报架构错误：改用 `arch -arm64 /Library/Developer/CommandLineTools/usr/bin/python3.9 find_key_memscan.py`
 - 若失败报 `ModuleNotFoundError: No module named 'lldb'`：确认使用的是 Python 3.9，`_lldb` 只支持 3.9
 - 若失败报 Permission denied：SIP 未关闭，返回 Level 3
 

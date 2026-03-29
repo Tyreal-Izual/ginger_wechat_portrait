@@ -113,7 +113,7 @@ csrutil status
 
 ### Step 5 · 【手动】提取微信密钥
 
-> **为什么需要手动**：`find_key.py` 通过 `lldb` 附加到微信进程读取内存中的密钥。
+> **为什么需要手动**：密钥提取脚本需要通过 `lldb` 附加到微信进程读取内存中的密钥。
 > Claude Code 的子进程不具备 `taskport` 权限，**必须由用户在系统 Terminal.app 中执行**。
 
 **操作前询问（AskUserQuestion）**：
@@ -128,15 +128,16 @@ csrutil status
 ```bash
 cd ~/Documents/wechat-db-decrypt-macos
 PYTHONPATH="/Library/Developer/CommandLineTools/Library/PrivateFrameworks/LLDB.framework/Versions/A/Resources/Python" \
-/Library/Developer/CommandLineTools/usr/bin/python3.9 find_key.py
+/Library/Developer/CommandLineTools/usr/bin/python3.9 find_key_memscan.py
 ```
 
 **同时告知用户操作步骤**：
-1. 脚本启动后微信会**短暂卡住**（正在附加进程，约 2～5 分钟，属正常现象）
-2. 微信恢复响应后，切换到微信，**依次点开 3～5 个不同的聊天窗口**
-3. 终端出现 `[!] Found new key!` 表示成功
-4. 按 `Ctrl+C` 停止，`wechat_keys.json` 自动保存
-5. 完成后回到 Claude Code 告知已完成
+1. 脚本会附加到微信并扫描内存，过程中可能持续几十秒到几分钟
+2. 终端出现 `[*] Detached from WeChat.` 表示扫描完成并正常分离，不是报错
+3. 若最后出现 `Results: X/Y keys found` 与 `[*] Keys saved to wechat_keys.json`，说明密钥已成功保存
+4. 若结果中已经包含 `contact/contact.db`、`message/message_0.db`、`session/session.db` 等关键库，即可继续后续解密流程
+5. 某些非关键库（如 `migrate/unspportmsg.db`）即使缺失，也通常不影响聊天导出与报告生成
+6. 完成后回到 Claude Code 告知已完成
 
 **错误处理**：
 | 错误信息 | 处理方式 |

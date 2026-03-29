@@ -40,8 +40,24 @@
 | 微信版本 | Mac 客户端 4.x |
 | Python | 3.10 及以上 |
 | Codex | 能读取工作区文件并写回 JSON 结果 |
+| 机器内存 | 建议最低 16GB，推荐 24GB 及以上 |
 
 你不需要 Claude Code，也不需要 Anthropic API Key。
+
+### Codex 推荐设置
+
+为了尽量给人格分析阶段保留完整上下文，建议把 Codex 的上下文相关配置设置为：
+
+```toml
+model_context_window = 1000000
+model_auto_compact_token_limit = 900000
+```
+
+### 运行内存建议
+
+- 建议最低运行内存为 16GB，推荐 24GB 起。
+- 如果机器只有 8GB，建议先关闭无关的所有进程再运行。
+- 在 8GB 机器上直接跑完整流程时，系统压力可能会过高，运行可能中断。
 
 ---
 
@@ -98,7 +114,7 @@ pip install -r requirements.txt
 和上游项目一样，首次读取微信数据库时仍然需要两步手工操作：
 
 1. 关闭 SIP
-2. 在系统 `Terminal.app` 里手动运行密钥提取脚本
+2. 在系统 `Terminal.app` 里手动运行内存扫描版密钥提取脚本
 
 这部分限制来自 macOS 调试权限，不是 Claude 或 Codex 特有问题。  
 详细说明见 [安装指南.md](./安装指南.md)。
