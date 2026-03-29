@@ -126,15 +126,19 @@ def find_contact(db_dir: Path, name: str):
 
 def get_self_wxid(db_dir: Path) -> str:
     """推断自己的 wxid：先查 WeChat 数据目录，再从 Name2Id 找"""
-    import glob
+    import re
 
     # 方法1：从 WeChat 原始数据目录找 wxid_ 开头的文件夹
     wechat_dir = Path.home() / 'Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files'
+    fs_candidates = []
     if wechat_dir.exists():
-        candidates = [d.name.split('_0ad')[0] for d in wechat_dir.iterdir()
-                      if d.is_dir() and d.name.startswith('wxid_')]
-        if len(candidates) == 1:
-            return candidates[0]
+        for d in wechat_dir.iterdir():
+            if not d.is_dir() or not d.name.startswith('wxid_'):
+                continue
+            fs_candidates.append(d.name)
+            match = re.match(r'^(wxid_[^_]+)_[0-9a-f]+$', d.name)
+            if match:
+                fs_candidates.append(match.group(1))
 
     # 方法2：从 Name2Id 表中找唯一的 wxid_ 账号（排除联系人）
     msg_dbs = get_message_dbs(db_dir)
@@ -151,6 +155,10 @@ def get_self_wxid(db_dir: Path) -> str:
     conn2 = sqlite3.connect(contact_db)
     contacts = {r[0] for r in conn2.execute("SELECT username FROM contact").fetchall()}
     conn2.close()
+
+    for candidate in fs_candidates:
+        if candidate in [u for (u,) in rows]:
+            return candidate
 
     # 在 Name2Id 里，不是联系人的 wxid_ 账号就是自己
     own_wxids = [u for (u,) in rows if u and u.startswith('wxid_') and u not in contacts]
