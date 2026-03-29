@@ -1,4 +1,7 @@
-# SKILL.md · /analyze-wechat 技术文档
+# SKILL.md · 上游 Claude 工作流参考文档
+
+> 说明：本文件主要保留上游项目的 Claude Code 技术流程作为参考。  
+> 当前 fork 的推荐使用方式已经切换为 `codex_workflow.py` + Codex 工作流，请优先参考 `README.md` 与 `安装指南.md`。
 
 本文档说明 Skill 的完整执行流程、每步调用的脚本，以及哪些节点需要用户操作。
 

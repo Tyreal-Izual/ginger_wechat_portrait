@@ -3,18 +3,18 @@
 """
 🍪 微信聊天记录人格分析工具 — 姜饼探AI
 
-两步工作流（无需外部 API Key）：
+两步工作流（由 Codex 或其他兼容代理完成分析）：
   步骤一：生成图表 + 分析输入文件（自己 + 对方）
     python main.py <CSV路径>
 
-  步骤二：读取 Claude 分析结果，生成完整对比报告
+  步骤二：读取人格分析结果 JSON，生成完整对比报告
     python main.py <CSV路径> --personality-result personality_result.json \
                              --partner-personality-result partner_result.json \
                              --partner-name <联系人名>
 
 选项：
   --output DIR                        输出目录（默认 ./wechat_analysis_output）
-  --sample-size N                     供 Claude 分析的采样消息数上限（默认 100）
+  --sample-size N                     供 Codex/兼容代理分析的采样消息数上限（默认 100）
   --personality-result FILE           自己的人格分析结果 JSON
   --partner-personality-result FILE   对方的人格分析结果 JSON
   --partner-name NAME                 对方的名字（默认"对方"）
@@ -33,7 +33,7 @@ import report as report_mod
 import sampler
 import stats as stats_mod
 import visualizer
-from personality import extract_features
+from features import extract_features
 
 
 def _fix_emoji(obj):
@@ -79,27 +79,21 @@ def _avatar_b64(path: Optional[str]) -> Optional[str]:
         return None
 
 
-def main():
-    parser = argparse.ArgumentParser(description='微信聊天记录人格分析工具 · 姜饼探AI')
-    parser.add_argument('csv_file', help='CSV 文件路径')
-    parser.add_argument('--output', default='./wechat_analysis_output')
-    parser.add_argument('--sample-size', type=int, default=100,
-                        help='供 Claude 分析的采样消息数上限（默认 100）')
-    parser.add_argument('--personality-result', default=None,
-                        help='自己的人格分析结果 JSON 文件')
-    parser.add_argument('--partner-personality-result', default=None,
-                        help='对方的人格分析结果 JSON 文件')
-    parser.add_argument('--self-name', default=None,
-                        help='自己的名字（默认从 meta JSON 读取，否则"我"）')
-    parser.add_argument('--partner-name', default=None,
-                        help='对方的名字（默认从 meta JSON 读取，否则"对方"）')
-    args = parser.parse_args()
-
-    if not os.path.exists(args.csv_file):
-        print(f'❌ 文件不存在：{args.csv_file}')
+def run_workflow(
+    csv_file: str,
+    output: str = './wechat_analysis_output',
+    sample_size: int = 100,
+    personality_result_path: Optional[str] = None,
+    partner_personality_result_path: Optional[str] = None,
+    self_name: Optional[str] = None,
+    partner_name: Optional[str] = None,
+) -> dict:
+    """执行生成输入或渲染最终报告的主流程。"""
+    if not os.path.exists(csv_file):
+        print(f'❌ 文件不存在：{csv_file}')
         sys.exit(1)
 
-    output_dir = args.output
+    output_dir = output
     charts_dir = os.path.join(output_dir, 'charts')
     os.makedirs(charts_dir, exist_ok=True)
 
@@ -108,16 +102,16 @@ def main():
         print(f'🖋  使用字体：{font}')
 
     # ── 读取 meta sidecar（昵称 + 头像），CLI 参数可覆盖 ────────────────────
-    meta = _load_meta(args.csv_file)
-    self_name    = args.self_name    or meta.get('self_name', '我')
-    partner_name = args.partner_name or meta.get('partner_name', '对方')
+    meta = _load_meta(csv_file)
+    self_name = self_name or meta.get('self_name', '我')
+    partner_name = partner_name or meta.get('partner_name', '对方')
     self_avatar_data    = _avatar_b64(meta.get('self_avatar_path'))
     partner_avatar_data = _avatar_b64(meta.get('partner_avatar_path'))
 
     # ── Step 1: 加载数据（自己 + 对方） ─────────────────────────────────────
     print('\n📂 正在加载数据...')
     try:
-        df = data_loader.load(args.csv_file, sender=1)
+        df = data_loader.load(csv_file, sender=1)
     except ValueError as e:
         print(f'❌ 数据加载失败：{e}')
         sys.exit(1)
@@ -127,7 +121,7 @@ def main():
         print('⚠️  自己消息数量较少，分析结果可靠性有限。')
 
     try:
-        df_partner = data_loader.load(args.csv_file, sender=0)
+        df_partner = data_loader.load(csv_file, sender=0)
         print(f'   对方：{len(df_partner):,} 条文本消息')
     except Exception:
         df_partner = None
@@ -163,21 +157,23 @@ def main():
     # ── Step 4: 读取人格分析结果 OR 导出分析输入 ──────────────────────────
     personality_result: dict = {}
     partner_personality: dict = {}
+    input_path = os.path.join(output_dir, 'personality_input.json')
+    partner_path = os.path.join(output_dir, 'partner_input.json')
 
-    if args.personality_result:
-        # 模式B：读取 Claude 写入的结果，生成完整报告
-        if not os.path.exists(args.personality_result):
-            print(f'❌ 找不到人格分析结果文件：{args.personality_result}')
+    if personality_result_path:
+        # 模式B：读取人格分析结果，生成完整报告
+        if not os.path.exists(personality_result_path):
+            print(f'❌ 找不到人格分析结果文件：{personality_result_path}')
             sys.exit(1)
-        with open(args.personality_result, encoding='utf-8') as f:
+        with open(personality_result_path, encoding='utf-8') as f:
             personality_result = _fix_emoji(json.load(f))
-        print(f'\n🧠 已读取自己的人格分析结果：{args.personality_result}')
+        print(f'\n🧠 已读取自己的人格分析结果：{personality_result_path}')
 
-        if args.partner_personality_result:
-            if not os.path.exists(args.partner_personality_result):
-                print(f'⚠️  找不到对方人格分析结果文件：{args.partner_personality_result}，将跳过对比')
+        if partner_personality_result_path:
+            if not os.path.exists(partner_personality_result_path):
+                print(f'⚠️  找不到对方人格分析结果文件：{partner_personality_result_path}，将跳过对比')
             else:
-                with open(args.partner_personality_result, encoding='utf-8') as f:
+                with open(partner_personality_result_path, encoding='utf-8') as f:
                     partner_personality = _fix_emoji(json.load(f))
                 print(f'🧠 已读取对方（{partner_name}）的人格分析结果')
 
@@ -188,10 +184,10 @@ def main():
             visualizer.save_all({'radar': radar}, charts_dir)
 
     else:
-        # 模式A（默认）：采样消息，导出 personality_input.json 供 Claude 分析
+        # 模式A（默认）：采样消息，导出 personality_input.json 供 Codex/兼容代理分析
         print('\n🧠 正在采样消息，准备人格分析输入...')
         clean_df = data_loader.filter_for_personality(df)
-        messages = sampler.smart_sample(clean_df, target_n=args.sample_size)
+        messages = sampler.smart_sample(clean_df, target_n=sample_size)
         features = extract_features(messages)
         top_words = sorted(stats['word_freq'].items(), key=lambda x: x[1], reverse=True)[:30]
 
@@ -206,7 +202,6 @@ def main():
                 'most_active_hour': int(stats['hourly'].idxmax()),
             },
         }
-        input_path = os.path.join(output_dir, 'personality_input.json')
         with open(input_path, 'w', encoding='utf-8') as f:
             json.dump(ai_input, f, ensure_ascii=False, indent=2)
         print(f'   自己：已采样 {len(messages)} 条消息 → {input_path}')
@@ -215,7 +210,7 @@ def main():
         if df_partner is not None and len(df_partner) > 0 and partner_stats is not None:
             clean_partner = data_loader.filter_for_personality(df_partner)
             if len(clean_partner) > 0:
-                partner_messages = sampler.smart_sample(clean_partner, target_n=args.sample_size)
+                partner_messages = sampler.smart_sample(clean_partner, target_n=sample_size)
                 partner_features = extract_features(partner_messages)
                 partner_top_words = sorted(
                     partner_stats['word_freq'].items(), key=lambda x: x[1], reverse=True
@@ -232,7 +227,6 @@ def main():
                         'most_active_hour': int(partner_stats['hourly'].idxmax()),
                     },
                 }
-                partner_path = os.path.join(output_dir, 'partner_input.json')
                 with open(partner_path, 'w', encoding='utf-8') as f:
                     json.dump(partner_ai_input, f, ensure_ascii=False, indent=2)
                 print(f'   对方：已采样 {len(partner_messages)} 条消息 → {partner_path}')
@@ -241,7 +235,7 @@ def main():
         else:
             print('   ⚠️  对方消息不足，跳过对方分析输入生成')
 
-        print(f'   → Claude skill 将读取上述文件进行人格分析')
+        print('   → Codex 工作流将读取上述文件并写回人格分析 JSON')
 
     # ── Step 5: 生成报告 ────────────────────────────────────────────────────
     print('\n📝 正在生成 HTML 报告...')
@@ -262,8 +256,9 @@ def main():
         json.dump(personality_result, f, ensure_ascii=False, indent=2)
 
     has_partner = bool(partner_personality)
+    has_result = bool(personality_result)
     print(f'''
-🍪 {"完整对比报告已生成" if has_partner else ("完整报告已生成" if args.personality_result else "图表已生成，等待人格分析")}！
+🍪 {"完整对比报告已生成" if has_partner else ("完整报告已生成" if has_result else "图表已生成，等待人格分析")}！
 ─────────────────────────────────
   HTML 报告：{report_path}
   图表目录： {charts_dir}
@@ -271,6 +266,42 @@ def main():
 在浏览器中查看：
   open "{report_path}"
 ''')
+
+    return {
+        'report_path': report_path,
+        'charts_dir': charts_dir,
+        'output_dir': output_dir,
+        'personality_input_path': input_path if os.path.exists(input_path) else None,
+        'partner_input_path': partner_path if os.path.exists(partner_path) else None,
+        'has_partner_result': has_partner,
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser(description='微信聊天记录人格分析工具 · 姜饼探AI')
+    parser.add_argument('csv_file', help='CSV 文件路径')
+    parser.add_argument('--output', default='./wechat_analysis_output')
+    parser.add_argument('--sample-size', type=int, default=100,
+                        help='供 Codex/兼容代理分析的采样消息数上限（默认 100）')
+    parser.add_argument('--personality-result', default=None,
+                        help='自己的人格分析结果 JSON 文件')
+    parser.add_argument('--partner-personality-result', default=None,
+                        help='对方的人格分析结果 JSON 文件')
+    parser.add_argument('--self-name', default=None,
+                        help='自己的名字（默认从 meta JSON 读取，否则"我"）')
+    parser.add_argument('--partner-name', default=None,
+                        help='对方的名字（默认从 meta JSON 读取，否则"对方"）')
+    args = parser.parse_args()
+
+    run_workflow(
+        csv_file=args.csv_file,
+        output=args.output,
+        sample_size=args.sample_size,
+        personality_result_path=args.personality_result,
+        partner_personality_result_path=args.partner_personality_result,
+        self_name=args.self_name,
+        partner_name=args.partner_name,
+    )
 
 
 if __name__ == '__main__':

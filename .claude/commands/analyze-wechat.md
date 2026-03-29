@@ -1,5 +1,8 @@
 # /analyze-wechat
 
+> Legacy upstream workflow note: this file is kept for Claude Code compatibility reference.  
+> The recommended workflow in this fork is `python codex_workflow.py prepare ...` followed by Codex-generated result JSONs.
+
 分析微信聊天记录，自动完成从环境安装到生成报告的全流程。
 
 ## 路径约定
