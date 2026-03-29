@@ -2,12 +2,15 @@
 
 > 本仓库基于上游项目 [`Jiang59991/wechat-analyzer`](https://github.com/Jiang59991/wechat-analyzer) 的 fork 进行改造。  
 > 原项目的整体思路、数据处理流程与初始实现归上游作者所有；本 fork 主要将原先依赖 Claude Code 的工作流，调整为可由 Codex Desktop App 接管的人格分析与报告生成流程。
+>
+> This repository is an adapted fork of the upstream project [`Jiang59991/wechat-analyzer`](https://github.com/Jiang59991/wechat-analyzer).  
+> The original project concept, data-processing pipeline, and initial implementation belong to the upstream author; this fork mainly adapts the original Claude Code workflow so the personality-analysis and report-generation stages can be handled by Codex Desktop App.
 
 ---
 
 ## 这个 fork 改了什么
 
-- 移除了主流程对 `Anthropic / Claude` 的硬依赖
+- 主流程现在依赖 `Codex Desktop App` 接管人格分析与报告生成阶段
 - 保留原有本地数据处理、图表生成、HTML 报告能力
 - 新增 `codex_workflow.py`，提供 `prepare / validate / finalize` 三段式工作流
 - 让人格分析步骤变成标准的 JSON 输入 / JSON 输出接口，方便由 Codex Desktop App 接管
