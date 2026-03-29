@@ -45,6 +45,30 @@
 
 ---
 
+## Plugin 入口
+
+这个仓库现在包含一个 repo-local Codex plugin：
+
+- Plugin: `wechat-analyzer-codex`
+- Skill: `analyze-wechat`
+
+打开这个仓库后，如果 Codex 需要你手动启用本地插件，就在本仓库的 local repo plugins 中启用 `WeChat Analyzer for Codex`。  
+启用后，你可以直接这样用：
+
+```text
+$analyze-wechat 帮我分析和小明的微信聊天记录
+```
+
+或者：
+
+```text
+使用 $analyze-wechat，继续我已经导出的 CSV 分析流程，并生成最终报告
+```
+
+如果你只是想看底层命令，后面的“Codex 工作流”章节也保留了 CLI 方式。
+
+---
+
 ## 安装
 
 ### 方式一：项目内虚拟环境
@@ -83,7 +107,23 @@ pip install -r requirements.txt
 
 ## Codex 工作流
 
-整个流程可以理解成三步：
+推荐优先使用 plugin/skill 入口：
+
+```text
+$analyze-wechat 帮我分析和小明的微信聊天记录
+```
+
+skill 会按当前仓库的流程去做：
+
+1. 检查环境与本地数据库是否就绪
+2. 导出联系人消息
+3. 生成人格分析输入
+4. 由 Codex 写出结果 JSON
+5. 生成最终 HTML 报告
+
+如果你需要手动调试、分步执行，下面是等价的 CLI 流程。
+
+整个 CLI 流程可以理解成三步：
 
 1. 准备输入：导出聊天记录、生成图表与人格分析输入 JSON
 2. 让 Codex 读取输入 JSON，写出 `personality_result.json`

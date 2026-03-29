@@ -1,0 +1,38 @@
+{
+  "name": "wechat-analyzer-codex",
+  "version": "0.1.0",
+  "description": "Codex plugin for exporting WeChat chats and generating the local portrait report in this repository.",
+  "author": {
+    "name": "Tyreal-Izual",
+    "email": "",
+    "url": "https://github.com/Tyreal-Izual"
+  },
+  "homepage": "https://github.com/Tyreal-Izual/ginger_wechat_portrait",
+  "repository": "https://github.com/Tyreal-Izual/ginger_wechat_portrait",
+  "license": "UNLICENSED",
+  "keywords": [
+    "wechat",
+    "codex",
+    "analysis",
+    "report"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "WeChat Analyzer for Codex",
+    "shortDescription": "Analyze local WeChat chats and generate the portrait report",
+    "longDescription": "A Codex-ready plugin that exports local WeChat contact chats, prepares personality analysis inputs, writes structured result JSON, and renders the final HTML portrait report for this repository.",
+    "developerName": "Tyreal-Izual",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/Tyreal-Izual/ginger_wechat_portrait",
+    "defaultPrompt": [
+      "Use $analyze-wechat to analyze my chat history with a WeChat contact.",
+      "Use $analyze-wechat to continue a prepared WeChat CSV analysis.",
+      "Use $analyze-wechat to generate the final WeChat portrait report."
+    ],
+    "brandColor": "#8B5E3C"
+  }
+}

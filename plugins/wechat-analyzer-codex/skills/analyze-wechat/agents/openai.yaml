@@ -1,0 +1,7 @@
+interface:
+  display_name: "Analyze WeChat"
+  short_description: "Export chats and generate the WeChat portrait report"
+  default_prompt: "Use $analyze-wechat to export, analyze, and report on a WeChat contact conversation."
+
+policy:
+  allow_implicit_invocation: true
