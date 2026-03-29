@@ -42,7 +42,6 @@
 | Codex | 能读取工作区文件并写回 JSON 结果 |
 | 机器内存 | 建议最低 16GB，推荐 24GB 及以上 |
 
-你不需要 Claude Code，也不需要 Anthropic API Key。
 
 ### Codex 推荐设置
 
@@ -68,8 +67,7 @@ model_auto_compact_token_limit = 900000
 - Plugin: `wechat-analyzer-codex`
 - Skill: `analyze-wechat`
 
-打开这个仓库后，如果 Codex 需要你手动启用本地插件，就在本仓库的 local repo plugins 中启用 `WeChat Analyzer for Codex`。  
-启用后，你可以直接这样用：
+打开这个仓库后，你可以直接这样用：
 
 ```text
 $analyze-wechat 帮我分析和小明的微信聊天记录
