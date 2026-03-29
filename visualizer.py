@@ -7,6 +7,7 @@ from collections import Counter
 from typing import Optional
 
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.font_manager as fm
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -31,7 +32,11 @@ _WC_FONT_PATH: Optional[str] = None
 # 候选字体文件路径
 _FONT_FILE_CANDIDATES = [
     '/System/Library/Fonts/PingFang.ttc',
+    '/System/Library/Fonts/Hiragino Sans GB.ttc',
     '/System/Library/Fonts/STHeiti Light.ttc',
+    '/System/Library/Fonts/STHeiti Medium.ttc',
+    '/System/Library/Fonts/Supplemental/Songti.ttc',
+    '/Library/Fonts/Arial Unicode.ttf',
     '/System/Library/Fonts/Supplemental/Arial Unicode.ttf',
     'C:/Windows/Fonts/msyh.ttc',
     'C:/Windows/Fonts/simhei.ttf',
@@ -44,7 +49,8 @@ _FONT_FILE_CANDIDATES = [
 def setup_font() -> Optional[str]:
     global _WC_FONT_PATH
     candidates = [
-        'PingFang SC', 'Heiti SC', 'STHeiti', 'STSong',
+        'PingFang SC', 'Hiragino Sans GB', 'Songti SC', 'Arial Unicode MS',
+        'Heiti TC', 'Heiti SC', 'STHeiti', 'STSong',
         'Microsoft YaHei', 'SimHei', 'WenQuanYi Micro Hei', 'Noto Sans CJK SC',
     ]
     available = {f.name for f in fm.fontManager.ttflist}
